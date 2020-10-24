@@ -1,9 +1,6 @@
 import socketio from 'socket.io';
 
 import { Events } from './events';
-import store from './store';
-
-const MAX_POINTS = 10
 
 function onMatchJoin(socket) {
   return (teamColor, callback) => {
@@ -14,10 +11,9 @@ function onMatchJoin(socket) {
 }
 
 function onGoalScored(socket) {
-  return (teamColor) => {
-    // Check the match state
-    store.commit('increment', teamColor)
-    socket.broadcast.emit(Events.MATCH_UPDATE, store.state.match)
+  return (team) => {
+    console.log(`The team ${team} scored a goal!`)
+    socket.broadcast.emit(Events.MATCH_UPDATE, team)
   }
 }
 
