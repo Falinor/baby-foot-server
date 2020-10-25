@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon --exec babel-node bin/index.js",
-    "start": "node bin/index.js"
+    "start": "node bin/index.js",
+    "serve": "babel-node bin/index.js"
   },
   "dependencies": {
     "convict": "^6.0.0",

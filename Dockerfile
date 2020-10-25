@@ -10,7 +10,7 @@ COPY package.json yarn.lock $APP/
 RUN yarn
 
 COPY . $APP
-RUN yarn build
+# RUN yarn build
 
 VOLUME [ "$APP/src"  ]
 
