@@ -1,5 +1,7 @@
 import convict from 'convict'
+import formats from 'convict-format-with-validator'
 
+convict.addFormats(formats)
 convict.addFormat({
   name: 'comma-separated array',
   validate(val) {
@@ -13,12 +15,12 @@ convict.addFormat({
 const conv = convict({
   host: {
     env: 'HOST',
-    format: String,
+    format: 'ipaddress',
     default: '0.0.0.0'
   },
   port: {
     env: 'PORT',
-    format: Number,
+    format: 'port',
     default: 4000
   },
   allowedOrigins: {
@@ -34,8 +36,8 @@ const conv = convict({
   babyfoot: {
     api: {
       env: 'MATCH_API',
-      format: String,
-      default: 'localhost:3000/v1'
+      format: 'url',
+      default: 'http://localhost:9000/v1'
     }
   },
   battlemythe: {

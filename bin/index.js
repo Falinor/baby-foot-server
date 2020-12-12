@@ -1,8 +1,6 @@
-import { createServer } from '../src/server';
+import { createServer } from '../src/server'
 
 const server = createServer()
 server.start()
 
-process.on('SIGINT', async () => {
-  await server.stop()
-})
+process.on('SIGINT', server.stop)

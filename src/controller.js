@@ -3,11 +3,13 @@ import {
   GameMode,
   increment,
   incrementOther,
+  decrement,
   isOver,
   isPlaying,
   resetMatch,
   setGameMode,
   setMatch,
+  setPlayers,
   setStatus,
   Status
 } from './store'
@@ -32,15 +34,21 @@ export function onMatchStart({ matchRepository, socket, store }) {
       return ack?.('A match is already in progress')
     }
 
-    const match =
-      mode === GameMode.RANKED
-        ? await matchRepository.create(state.match)
-        : state.match
-    store.dispatch(setMatch(match))
-    store.dispatch(setStatus(Status.PLAYING))
-    store.dispatch(setGameMode(mode))
-    socket.broadcast.emit(Events.MATCH_STARTED, match)
-    return ack?.(null, match)
+    try {
+      const match =
+        mode === GameMode.RANKED
+          ? await matchRepository.create(state.match)
+          : state.match
+      store.dispatch(setMatch(match))
+      store.dispatch(setStatus(Status.PLAYING))
+      store.dispatch(setGameMode(mode))
+      socket.broadcast.emit(Events.MATCH_STARTED, match)
+      return ack?.(null, {
+        ...match
+      })
+    } catch (err) {
+      return ack?.(err)
+    }
   }
 }
 
@@ -108,18 +116,40 @@ export function onScoreDecrement({ socket, store }) {
     }
 
     console.log(`Decrement ${teamName}'s points manually`)
-    store.dispatch(increment(teamName))
+    store.dispatch(decrement(teamName))
     const newState = store.getState()
     socket.broadcast.emit(Events.SCORE_DECREMENTED, newState.match)
     return ack?.(null, newState.match)
   }
 }
 
-export const createController = ({ matchRepository, socket, store }) => ({
-  onMatchGet: onMatchGet({ store }),
-  onMatchStart: onMatchStart({ matchRepository, socket, store }),
-  onMatchCancel: onMatchCancel({ matchRepository, socket, store }),
-  onGoalScored: onGoalScored({ matchRepository, socket, store }),
-  onScoreIncrement: onScoreIncrement({ socket, store }),
-  onScoreDecrement: onScoreDecrement({ socket, store })
-})
+let interval
+
+export function fetchAttraction({ attractionRepository, store, server }) {
+  interval = setInterval(async () => {
+    const state = store.getState()
+    if (!isPlaying(state)) {
+      const { players } = await attractionRepository.get()
+      store.dispatch(setPlayers(players))
+      const newState = store.getState()
+      server.emit(Events.TEAMS_UPDATE, newState.match.teams)
+    }
+  }, 3000)
+}
+
+export function stopAttraction() {
+  if (interval) {
+    clearInterval(interval)
+  }
+}
+
+export const createController = ({ matchRepository, socket, store }) => {
+  return {
+    onMatchGet: onMatchGet({ store }),
+    onMatchStart: onMatchStart({ matchRepository, socket, store }),
+    onMatchCancel: onMatchCancel({ matchRepository, socket, store }),
+    onGoalScored: onGoalScored({ matchRepository, socket, store }),
+    onScoreIncrement: onScoreIncrement({ socket, store }),
+    onScoreDecrement: onScoreDecrement({ socket, store })
+  }
+}

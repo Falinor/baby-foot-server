@@ -9,21 +9,13 @@ export class PlayerRepository {
     })
   }
 
-  async create(match) {
-    await this.http.post('/matches', toAPI(match))
+  async find(options = {}) {
+    const { data: players } = await this.http.get('/players')
+    return players
   }
 
-  async update(match) {
-    const { data } = await this.http.put(`/matches/${match.id}`, match)
-    return data
+  async get(id) {
+    const { data: player } = await this.http.get(`/players/${id}`)
+    return player
   }
 }
-
-const toAPI = (match) => ({
-  teams: match.teams.map((team) => ({
-    points: team.points,
-    color: team.color,
-    name: team.name,
-    players: team.players.map((player) => player.id)
-  }))
-})

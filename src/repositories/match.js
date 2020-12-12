@@ -5,16 +5,17 @@ import { config } from '../core'
 export class MatchRepository {
   constructor() {
     this.http = axios.create({
-      baseURL: config.api.match.baseURL
+      baseURL: config.babyfoot.api
     })
   }
 
   async create(match) {
-    await this.http.post('/matches', toAPI(match))
+    const { data } = this.http.post('/matches', toAPI(match))
+    return data
   }
 
   async update(match) {
-    const { data } = await this.http.put(`/matches/${match.id}`, match)
+    const { data } = await this.http.put(`/matches/${match.id}`, toAPI(match))
     return data
   }
 }

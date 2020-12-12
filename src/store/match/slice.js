@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { chunk } from 'lodash'
 
 const getInitialState = () => ({
   teams: [
@@ -16,6 +17,16 @@ export const matchSlice = createSlice({
     },
     setMatch(state, action) {
       state = action.payload
+    },
+    setPlayers(state, action) {
+      const players = action.payload
+      // const combs = combinations(players, 2, 2).map((players) =>
+      //   meanBy(players, 'rank')
+      // )
+      const playerChunks = chunk(players, Math.ceil(players.length / 2))
+      state.teams.forEach((team, i) => {
+        team.players = playerChunks[i] ?? []
+      })
     },
     increment(state, action) {
       const team = state.teams.find((team) => team.name === action.payload)
@@ -45,11 +56,12 @@ export const matchSlice = createSlice({
 })
 
 export const {
+  resetMatch,
   setMatch,
+  setPlayers,
   increment,
   incrementOther,
   decrement,
-  decrementOther,
-  resetMatch
+  decrementOther
 } = matchSlice.actions
 export const matchReducer = matchSlice.reducer
