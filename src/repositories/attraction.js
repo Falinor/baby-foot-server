@@ -21,14 +21,14 @@ export class AttractionRepository {
 
   async start() {
     await this.http.post('/attractions/babyfoot/start', {
-      userId: config.battlemythe.userId,
+      username: config.battlemythe.username,
       password: config.battlemythe.password
     })
   }
 
   async cancel() {
     await this.http.post('/attractions/babyfoot/cancel', {
-      userId: config.battlemythe.userId,
+      username: config.battlemythe.username,
       password: config.battlemythe.password
     })
   }

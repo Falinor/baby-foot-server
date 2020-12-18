@@ -1,38 +1,83 @@
 import { Server } from 'socket.io'
 
-import { createController, fetchAttraction } from './controller'
+import { createBetController } from './bet-controller'
+import { createMatchController, fetchAttraction } from './match-controller'
 import { Events } from './events'
 import {
   AttractionRepository,
+  BetRepository,
+  EventRepository,
   MatchRepository,
-  PlayerRepository
+  PlayerRepository,
+  StreamingRepository
 } from './repositories'
-import store from './store'
+import store, {
+  GameMode,
+  setGameMode,
+  setMatch,
+  setStatus,
+  Status
+} from './store'
+import { deserialize } from './store/serializer'
 
 export default function createWebsocketServer() {
   const io = new Server({
     cors: {
       origin: true,
-      methods: ['GET', 'POST']
+      methods: ['GET', 'POST'],
+      credentials: true
     }
   })
   const attractionRepository = new AttractionRepository({
     playerRepository: new PlayerRepository()
   })
   const matchRepository = new MatchRepository()
+  const eventRepository = new EventRepository()
+  const betRepository = new BetRepository()
+  const streamingRepository = new StreamingRepository()
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     console.log('A socket has connected')
 
-    const controller = createController({ matchRepository, socket, store })
-    socket.on(Events.MATCH_GET, controller.onMatchGet)
-    socket.on(Events.MATCH_START, controller.onMatchStart)
-    socket.on(Events.MATCH_CANCEL, controller.onMatchCancel)
-    socket.on(Events.GOAL_SCORED, controller.onGoalScored)
-    socket.on(Events.SCORE_INCREMENT, controller.onScoreIncrement)
-    socket.on(Events.SCORE_DECREMENT, controller.onScoreDecrement)
+    await streamingRepository.connect()
+
+    const matchController = createMatchController({
+      attractionRepository,
+      eventRepository,
+      matchRepository,
+      streamingRepository,
+      socket,
+      store
+    })
+    socket.on(Events.MATCH_GET, matchController.onMatchGet)
+    socket.on(Events.MATCH_START, matchController.onMatchStart)
+    socket.on(Events.MATCH_CANCEL, matchController.onMatchCancel)
+    socket.on(Events.MATCH_END, matchController.onMatchEnd)
+    socket.on(Events.GOAL_SCORED, matchController.onGoalScored)
+    socket.on(Events.GOAL_REMOVED, matchController.onGoalRemoved)
+
+    // Bet controller
+    const betController = createBetController({ betRepository, store, socket })
+    socket.on(Events.BET_ADD, betController.onBet)
+    socket.on(Events.BET_ACCEPT, betController.onBetAccept)
   })
 
+  // attractionRepository.cancel().then(() => {
+  //   console.log('Cancelled')
+  // })
+  // Retrieve the match in progress if any
+
+  deserialize()
+    .then((state) => {
+      console.log('Found a match in progress', state.match)
+      store.dispatch(setMatch(state.match))
+      store.dispatch(setStatus(state.status))
+      store.dispatch(setGameMode(state.gameMode))
+    })
+    .catch((err) => {
+      console.error(err)
+      console.log(`State not found. Skipping...`)
+    })
   fetchAttraction({ attractionRepository, store, server: io })
 
   return io

@@ -1,5 +1,5 @@
-import { Commands } from '../commands'
-import { createController } from '../controller'
+import { createMatchController, rotateScenes } from '../match-controller'
+import { StreamingRepository } from '../repositories'
 
 describe('Unit | Controller', () => {
   let matchRepository
@@ -16,7 +16,7 @@ describe('Unit | Controller', () => {
       dispatch: jest.fn(),
       getState: jest.fn()
     }
-    controller = createController({
+    controller = createMatchController({
       matchRepository,
       socket,
       store
@@ -36,12 +36,12 @@ describe('Unit | Controller', () => {
     it('should call the repository', () => {
       expect(matchRepository.create).toHaveBeenCalledWith(payload)
     })
+  })
 
-    it('should broadcast that the match is starting', () => {
-      expect(socket.broadcast.emit).toHaveBeenCalledWith(
-        Commands.MATCH_START,
-        payload
-      )
-    })
+  it('should rotate scenes', async () => {
+    const streamingRepository = new StreamingRepository()
+    await streamingRepository.connect()
+    const scenes = await streamingRepository.listScenes()
+    console.log(scenes)
   })
 })

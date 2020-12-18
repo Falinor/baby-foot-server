@@ -9,14 +9,23 @@ export class MatchRepository {
     })
   }
 
-  async create(match) {
-    const { data } = this.http.post('/matches', toAPI(match))
+  async find(query) {
+    const { data } = await this.http.get('/matches', { params: query })
     return data
   }
 
-  async update(match) {
+  async create(match) {
+    const { data } = await this.http.post('/matches', toAPI(match))
+    return data
+  }
+
+  async end(match) {
     const { data } = await this.http.put(`/matches/${match.id}`, toAPI(match))
     return data
+  }
+
+  async cancel(match) {
+    await this.http.delete(`/matches/${match.id}`)
   }
 }
 

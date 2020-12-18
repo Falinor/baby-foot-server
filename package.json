@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon --exec babel-node bin/index.js",
+    "dev": "nodemon -w src --exec babel-node bin/index.js",
     "start": "node bin/index.js",
     "serve": "babel-node bin/index.js",
     "test": "jest"
@@ -14,9 +14,11 @@
     "combinations": "^1.0.0",
     "convict": "^6.0.0",
     "convict-format-with-validator": "^6.0.0",
+    "dotenv": "^8.2.0",
     "fp-ts": "^2.9.1",
     "lodash": "^4.17.20",
     "morgan": "^1.10.0",
+    "obs-websocket-js": "^4.0.2",
     "redux": "^4.0.5",
     "socket.io": "^3.0.4"
   },

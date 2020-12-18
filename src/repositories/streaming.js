@@ -1,8 +1,8 @@
 import OBSWebSocket from 'obs-websocket-js'
 
-import { config } from '@/core'
+import { config } from '../core'
 
-export class StreamService {
+export class StreamingRepository {
   constructor() {
     this.obs = new OBSWebSocket()
   }
@@ -24,8 +24,6 @@ export class StreamService {
   async stopRecording() {
     await this.obs.send('StopRecording')
   }
-
-  async listRecords() {}
 
   async switchScene(name) {
     await this.obs.send('SetCurrentScene', { 'scene-name': name })

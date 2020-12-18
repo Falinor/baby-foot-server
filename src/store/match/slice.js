@@ -5,7 +5,8 @@ const getInitialState = () => ({
   teams: [
     { color: 'black', name: 'Batman', players: [], points: 0 },
     { color: 'purple', name: 'Joker', players: [], points: 0 }
-  ]
+  ],
+  createdAt: new Date().toJSON()
 })
 
 export const matchSlice = createSlice({
@@ -16,7 +17,7 @@ export const matchSlice = createSlice({
       return getInitialState()
     },
     setMatch(state, action) {
-      state = action.payload
+      return action.payload
     },
     setPlayers(state, action) {
       const players = action.payload

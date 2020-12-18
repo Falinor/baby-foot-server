@@ -1,5 +1,11 @@
 import convict from 'convict'
 import formats from 'convict-format-with-validator'
+import dotenv from 'dotenv'
+import path from 'path'
+
+dotenv.config({
+  path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env'
+})
 
 convict.addFormats(formats)
 convict.addFormat({
@@ -13,6 +19,10 @@ convict.addFormat({
 })
 
 const conv = convict({
+  root: {
+    format: String,
+    default: path.join(__dirname, '..', '..')
+  },
   host: {
     env: 'HOST',
     format: 'ipaddress',
@@ -46,16 +56,21 @@ const conv = convict({
       format: String,
       default: 'https://dev.battlemythe.net/api/anniv/2020'
     },
-    userId: {
-      env: 'BATTLEMYTHE_USER_ID',
+    username: {
+      env: 'BATTLEMYTHE_API_USERNAME',
       format: String,
       default: ''
     },
     password: {
-      env: 'BATTLEMYTHE_PASSWORD',
+      env: 'BATTLEMYTHE_API_PASSWORD',
       format: String,
       default: ''
     }
+  },
+  obs: {
+    env: 'OBS',
+    format: String,
+    default: 'localhost:4444'
   }
 })
 

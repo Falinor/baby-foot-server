@@ -5,9 +5,13 @@ export const Events = {
   MATCH_STARTED: 'match:started',
   MATCH_CANCEL: 'match:cancel',
   MATCH_CANCELLED: 'match:cancelled',
-  SCORE_INCREMENT: 'score:increment',
-  SCORE_INCREMENTED: 'score:incremented',
-  SCORE_DECREMENT: 'score:decrement',
-  SCORE_DECREMENTED: 'score:decremented',
-  GOAL_SCORED: 'goal:scored'
+  MATCH_END: 'match:end',
+  MATCH_ENDED: 'match:ended',
+  GOAL_SCORED: 'goal:scored',
+  GOAL_REMOVED: 'goal:removed',
+  BET_ADD: 'bet:add',
+  BET_ADDED: 'bet:added',
+  BET_ACCEPT: 'bet:accept',
+  BET_ACCEPTED: 'bet:accepted',
+  BET_COMPLETED: 'bet:completed'
 }

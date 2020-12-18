@@ -1,3 +1,6 @@
 export * from './attraction'
+export * from './bet'
+export * from './event'
 export * from './match'
 export * from './player'
+export * from './streaming'
