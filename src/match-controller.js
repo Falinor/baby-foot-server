@@ -1,6 +1,6 @@
 import { delay } from './core/delay'
 import { Events } from './events'
-import {
+import store, {
   GameMode,
   increment,
   incrementOther,
@@ -13,14 +13,23 @@ import {
   setPlayers,
   setStatus,
   Status,
-  setScene
+  setScene,
+  setRotation
 } from './store'
 import { serialize } from './store/serializer'
 
-export function onMatchGet({ store }) {
-  return (ack) => {
+export function onMatchGet({ streamingRepository, store }) {
+  return async (ack) => {
     const state = store.getState()
     console.log('Retrieving the current match', state)
+
+    if (!isOver(state) && !state.streaming.scene) {
+      const scenes = await streamingRepository
+        .listScenes()
+        .then(({ scenes }) => scenes)
+      rotateScenes({ scenes, streamingRepository, store })
+    }
+
     return ack?.(null, {
       status: state.status,
       mode: state.gameMode,
@@ -44,7 +53,6 @@ export function onMatchStart({
     }
 
     try {
-      // TODO
       const scenes = await streamingRepository
         .listScenes()
         .then(({ scenes }) => scenes)
@@ -94,10 +102,12 @@ export function onMatchCancel({
       }
 
       // Reset state
+      store.dispatch(setRotation(false))
       store.dispatch(resetMatch())
       store.dispatch(setStatus(Status.FREE))
       store.dispatch(setGameMode(GameMode.QUICKPLAY))
       socket.broadcast.emit(Events.MATCH_CANCELLED)
+      fetchAttraction({ attractionRepository, store, server: socket.server })
       console.log('Match cancelled')
       const newState = store.getState()
       // Save the state
@@ -115,6 +125,7 @@ export function onMatchCancel({
 }
 
 export function onMatchEnd({
+  attractionRepository,
   eventRepository,
   matchRepository,
   socket,
@@ -144,7 +155,9 @@ export function onMatchEnd({
       store.dispatch(resetMatch())
       store.dispatch(setStatus(Status.FREE))
       store.dispatch(setGameMode(GameMode.QUICKPLAY))
+      store.dispatch(setRotation(false))
       socket.broadcast.emit(Events.MATCH_ENDED)
+      fetchAttraction({ attractionRepository, store, server: socket.server })
       console.log('Match ended')
       const newState = store.getState()
       // Save the state
@@ -210,11 +223,9 @@ export function onGoalRemoved({ socket, store }) {
 
 export async function rotateScenes({ scenes, streamingRepository, store }) {
   const state = store.getState()
-  console.log(state)
   const doSwitch = async (i) => {
     if (state.streaming.rotate) {
       const scene = scenes[i]
-      console.log(`Switch scene to ${scene.name}`)
       await streamingRepository.switchScene(scene.name)
       store.dispatch(setScene(scene.name))
       await delay(state.streaming.timeout)
@@ -252,7 +263,7 @@ export const createMatchController = ({
   socket,
   store
 }) => ({
-  onMatchGet: onMatchGet({ store }),
+  onMatchGet: onMatchGet({ streamingRepository, store }),
   onMatchStart: onMatchStart({
     attractionRepository,
     matchRepository,
@@ -267,6 +278,7 @@ export const createMatchController = ({
     store
   }),
   onMatchEnd: onMatchEnd({
+    attractionRepository,
     eventRepository,
     matchRepository,
     socket,

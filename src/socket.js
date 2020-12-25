@@ -1,8 +1,9 @@
 import { Server } from 'socket.io'
 
 import { createBetController } from './bet-controller'
-import { createMatchController, fetchAttraction } from './match-controller'
+import { config } from './core'
 import { Events } from './events'
+import { createMatchController, fetchAttraction } from './match-controller'
 import {
   AttractionRepository,
   BetRepository,
@@ -11,13 +12,8 @@ import {
   PlayerRepository,
   StreamingRepository
 } from './repositories'
-import store, {
-  GameMode,
-  setGameMode,
-  setMatch,
-  setStatus,
-  Status
-} from './store'
+import { FakeStreamingService } from './repositories/fake-streaming'
+import store, { setGameMode, setMatch, setStatus } from './store'
 import { deserialize } from './store/serializer'
 
 export default function createWebsocketServer() {
@@ -34,12 +30,14 @@ export default function createWebsocketServer() {
   const matchRepository = new MatchRepository()
   const eventRepository = new EventRepository()
   const betRepository = new BetRepository()
-  const streamingRepository = new StreamingRepository()
+  const streamingRepository = config.feature.streaming
+    ? new StreamingRepository()
+    : new FakeStreamingService()
+
+  streamingRepository.connect()
 
   io.on('connection', async (socket) => {
     console.log('A socket has connected')
-
-    await streamingRepository.connect()
 
     const matchController = createMatchController({
       attractionRepository,

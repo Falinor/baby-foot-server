@@ -67,6 +67,13 @@ const conv = convict({
       default: ''
     }
   },
+  feature: {
+    streaming: {
+      env: 'FEATURE_STREAMING',
+      format: Boolean,
+      default: false
+    }
+  },
   obs: {
     env: 'OBS',
     format: String,

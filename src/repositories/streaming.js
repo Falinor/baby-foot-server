@@ -26,6 +26,7 @@ export class StreamingRepository {
   }
 
   async switchScene(name) {
+    console.log(`Switch scene to ${name}`)
     await this.obs.send('SetCurrentScene', { 'scene-name': name })
   }
 
